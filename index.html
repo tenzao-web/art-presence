@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Art Presence — Foundry VTT Module</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Overpass+Mono:wght@300;400;600&family=Raleway:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #0d0e12;
+  --ink-soft:   #131520;
+  --ink-panel:  #181a24;
+  --ink-card:   #1e2030;
+  --ink-hover:  #242638;
+  --border:     #2a2d3e;
+  --border-hi:  #3a3f5a;
+  --teal:       #3ecfcf;
+  --teal-dim:   #1e7a7a;
+  --teal-glow:  rgba(62,207,207,0.15);
+  --teal-faint: rgba(62,207,207,0.06);
+  --violet:     #9b6dff;
+  --violet-dim: #5a3fa0;
+  --rose:       #ff5f8a;
+  --amber:      #ffb347;
+  --green:      #3ecf8e;
+  --blue-mist:  #5f9fff;
+  --text:       #d8dce8;
+  --text-dim:   #8890a8;
+  --text-muted: #4a4f66;
+  --text-mono:  #6a8a8a;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ── HEADER ── */
+.site-header {
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid var(--border);
+  padding: 0 48px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(13,14,18,0.92);
+  backdrop-filter: blur(8px);
+}
+
+.site-header .logo {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.site-header .sep { color: var(--border-hi); }
+
+.site-header .crumb {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 11px;
+  color: var(--teal-dim);
+  letter-spacing: 0.1em;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 440px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 70% at 100% 50%, rgba(62,207,207,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 0% 30%,   rgba(155,109,255,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 30% 40% at 60% 100%,  rgba(255,95,138,0.04) 0%, transparent 50%);
+}
+
+.hero-lines {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.04;
+}
+
+.hero-lines::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    repeating-linear-gradient(90deg, var(--teal) 0, var(--teal) 1px, transparent 1px, transparent 80px);
+}
+
+.hero-lines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, var(--teal) 0, var(--teal) 1px, transparent 1px, transparent 80px);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 70px 48px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 60px;
+  align-items: start;
+  width: 100%;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--teal-dim);
+}
+
+.hero-eyebrow::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--teal-dim));
+}
+
+.hero-eyebrow::after {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--teal-dim), transparent);
+}
+
+h1 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 800;
+  font-size: 58px;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  color: #fff;
+}
+
+h1 span {
+  display: block;
+  background: linear-gradient(135deg, var(--teal) 0%, var(--blue-mist) 60%, var(--violet) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-version-line {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 26px;
+}
+
+.hero-version-line em {
+  color: var(--teal-dim);
+  font-style: normal;
+}
+
+.hero-desc {
+  font-size: 18px;
+  color: var(--text-dim);
+  max-width: 580px;
+  line-height: 1.8;
+  margin-bottom: 32px;
+  font-weight: 300;
+}
+
+.hero-desc strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  border-radius: 2px;
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tag-teal   { background: var(--teal-faint); border: 1px solid rgba(62,207,207,0.2); color: var(--teal); }
+.tag-violet { background: rgba(155,109,255,0.07); border: 1px solid rgba(155,109,255,0.25); color: #b08aff; }
+.tag-rose   { background: rgba(255,95,138,0.07); border: 1px solid rgba(255,95,138,0.22); color: #ff8aaa; }
+.tag-amber  { background: rgba(255,179,71,0.07); border: 1px solid rgba(255,179,71,0.22); color: #ffca7a; }
+.tag-green  { background: rgba(62,207,142,0.07); border: 1px solid rgba(62,207,142,0.22); color: #6adaaa; }
+
+/* ── HERO SIDEBAR ── */
+.hero-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+}
+
+.meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 16px 20px;
+  background: var(--ink-card);
+  border: 1px solid var(--border);
+}
+
+.meta-row:first-child { border-radius: 6px 6px 0 0; }
+.meta-row:last-child  { border-radius: 0 0 6px 6px; }
+
+.meta-row .k {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.meta-row .v {
+  font-family: 'Raleway', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.meta-row .v.teal { color: var(--teal); }
+
+.lang-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.lang-pill {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  padding: 3px 9px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-dim);
+}
+
+/* ── WRAP ── */
+.wrap {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 48px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── SECTION ── */
+section {
+  padding: 72px 0;
+  border-top: 1px solid var(--border);
+}
+
+.sec-eye {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--teal-dim);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sec-eye::after {
+  content: '';
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--teal-dim), transparent);
+}
+
+h2 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.sec-intro {
+  font-size: 17px;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-bottom: 44px;
+  max-width: 680px;
+  font-weight: 300;
+}
+
+/* ── FEATURE GRID ── */
+.feat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.feat {
+  background: var(--ink-card);
+  padding: 28px 26px 30px;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.feat:hover { background: var(--ink-hover); }
+
+.feat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--teal), var(--violet));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.feat:hover::before { opacity: 1; }
+
+.feat-glyph {
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+
+.feat h3 {
+  font-family: 'Raleway', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--teal);
+  margin-bottom: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.feat p {
+  font-size: 15.5px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+.feat ul {
+  list-style: none;
+  margin-top: 10px;
+}
+
+.feat ul li {
+  font-size: 14.5px;
+  color: var(--text-dim);
+  padding: 4px 0 4px 15px;
+  position: relative;
+  font-weight: 300;
+}
+
+.feat ul li::before {
+  content: '›';
+  position: absolute;
+  left: 2px;
+  color: var(--teal-dim);
+  font-size: 14px;
+}
+
+/* ── POSITIONS MAP ── */
+.pos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.pos-screen {
+  background: var(--ink-panel);
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  aspect-ratio: 16/10;
+  position: relative;
+  overflow: hidden;
+}
+
+.pos-screen::before {
+  content: 'FOUNDRY CANVAS';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Overpass Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--border-hi);
+}
+
+.pos-dot {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transform: translate(-50%, -50%);
+}
+
+.pos-dot-ring {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--teal);
+  background: var(--teal-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--teal);
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+}
+
+.pos-dot-name {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  color: var(--teal-dim);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.pos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pos-item {
+  display: grid;
+  grid-template-columns: 26px auto 1fr;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 10px 14px;
+  background: var(--ink-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.pos-item:hover { background: var(--ink-hover); }
+
+.pos-item .pi-icon {
+  font-size: 14px;
+  text-align: center;
+  color: var(--teal);
+}
+
+.pos-item .pi-name {
+  font-family: 'Raleway', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pos-item .pi-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* ── MOODS ── */
+.moods-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.mood-card {
+  background: var(--ink-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 14px;
+  transition: all 0.2s;
+  cursor: default;
+}
+
+.mood-card:hover {
+  background: var(--ink-hover);
+  border-color: var(--border-hi);
+  transform: translateY(-2px);
+}
+
+.mood-icon {
+  font-size: 20px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.mood-name {
+  font-family: 'Raleway', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+
+.mood-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.eff {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+
+.eff-v  { background: rgba(155,109,255,0.1); color: #9b6dff; border: 1px solid rgba(155,109,255,0.2); }
+.eff-p  { background: rgba(62,207,207,0.08); color: var(--teal-dim); border: 1px solid rgba(62,207,207,0.15); }
+.eff-r  { background: rgba(255,95,138,0.08); color: #ff5f8a; border: 1px solid rgba(255,95,138,0.18); }
+.eff-f  { background: rgba(255,179,71,0.08); color: var(--amber); border: 1px solid rgba(255,179,71,0.18); }
+.eff-s  { background: rgba(100,180,255,0.08); color: #64b4ff; border: 1px solid rgba(100,180,255,0.18); }
+.eff-sh { background: rgba(255,60,60,0.08); color: #ff7070; border: 1px solid rgba(255,60,60,0.18); }
+.eff-pl { background: rgba(62,207,142,0.08); color: var(--green); border: 1px solid rgba(62,207,142,0.18); }
+.eff-ta { background: rgba(180,160,255,0.08); color: #b0a0ff; border: 1px solid rgba(180,160,255,0.18); }
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: var(--ink-panel);
+  border: 1px solid var(--border-hi);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.code-block .cb-header {
+  background: rgba(62,207,207,0.06);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--teal-dim);
+  text-transform: uppercase;
+}
+
+.code-block pre {
+  padding: 20px 20px;
+  font-family: 'Overpass Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  overflow-x: auto;
+}
+
+.code-block pre .cm { color: var(--text-muted); }
+.code-block pre .ck { color: var(--violet); }
+.code-block pre .cs { color: var(--teal); }
+.code-block pre .cv { color: var(--amber); }
+.code-block pre .cp { color: var(--rose); }
+
+/* ── HOTKEYS ── */
+.hotkey-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.hk {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--ink-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 14px 18px;
+}
+
+.hk-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.kbd {
+  display: inline-block;
+  font-family: 'Overpass Mono', monospace;
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--ink-hover);
+  border: 1px solid var(--border-hi);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  color: var(--teal);
+  letter-spacing: 0.05em;
+}
+
+.hk-desc {
+  font-size: 15px;
+  color: var(--text-dim);
+  font-weight: 300;
+}
+
+/* ── AUDIENCE TABLE ── */
+.aud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.aud-table th {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-hi);
+}
+
+.aud-table td {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+  font-weight: 300;
+}
+
+.aud-table td:first-child {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 13px;
+  color: var(--teal);
+}
+
+.aud-table tr:last-child td { border-bottom: none; }
+.aud-table tr:hover td { background: rgba(62,207,207,0.02); }
+
+/* ── TWO COL ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* ── SETTINGS LIST ── */
+.setting-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-item {
+  background: var(--ink-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 16px 20px;
+  display: flex;
+  gap: 16px;
+}
+
+.setting-item .si-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  margin-top: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--teal-dim);
+}
+
+.setting-item .si-name {
+  font-family: 'Raleway', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+
+.setting-item .si-desc {
+  font-size: 14.5px;
+  color: var(--text-dim);
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* ── API TABLE ── */
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.api-table th {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-hi);
+}
+
+.api-table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.api-table tr:last-child td { border-bottom: none; }
+.api-table tr:hover td { background: rgba(62,207,207,0.02); }
+
+.api-fn {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 12px;
+  color: var(--teal);
+  white-space: nowrap;
+}
+
+.api-desc {
+  font-size: 14.5px;
+  color: var(--text-dim);
+  font-weight: 300;
+}
+
+.api-note {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── COMPAT ── */
+.compat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.compat-box {
+  background: var(--ink-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 20px;
+}
+
+.compat-box .cb-label {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.compat-box .cb-val {
+  font-family: 'Raleway', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.compat-box .cb-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 300;
+}
+
+.badge {
+  display: inline-block;
+  font-family: 'Overpass Mono', monospace;
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 2px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-top: 5px;
+}
+
+.badge-ok     { background: rgba(62,207,142,0.12); color: var(--green); border: 1px solid rgba(62,207,142,0.25); }
+.badge-teal   { background: var(--teal-faint); color: var(--teal); border: 1px solid rgba(62,207,207,0.2); }
+.badge-violet { background: rgba(155,109,255,0.1); color: #b08aff; border: 1px solid rgba(155,109,255,0.22); }
+
+/* ── CALLOUT ── */
+.callout {
+  border-left: 2px solid var(--teal);
+  padding: 16px 24px;
+  background: var(--teal-faint);
+  border-radius: 0 6px 6px 0;
+  margin: 24px 0;
+  font-size: 16px;
+  color: var(--text-dim);
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* ── FONTS SHOWCASE ── */
+.fonts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.font-card {
+  background: var(--ink-card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 14px 16px;
+  transition: background 0.15s;
+}
+
+.font-card:hover { background: var(--ink-hover); }
+
+.font-preview {
+  font-size: 22px;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.font-name {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  background: var(--ink-panel);
+  border-top: 1px solid var(--border);
+  padding: 36px 0;
+  text-align: center;
+}
+
+footer .ft-text {
+  font-family: 'Overpass Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  line-height: 2;
+}
+
+footer .ft-text span { color: var(--teal-dim); }
+
+@media (max-width: 900px) {
+  .hero-content { grid-template-columns: 1fr; }
+  h1 { font-size: 38px; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .moods-grid { grid-template-columns: repeat(3, 1fr); }
+  .two-col, .pos-grid, .hotkey-grid, .compat-row { grid-template-columns: 1fr; }
+  .fonts-grid { grid-template-columns: repeat(2, 1fr); }
+  .wrap { padding: 0 20px; }
+  .hero-content { padding: 50px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <span class="logo">Foundry VTT</span>
+  <span class="sep">/</span>
+  <span class="crumb">Modules</span>
+  <span class="sep">/</span>
+  <span class="crumb">art-presence</span>
+</header>
+
+<!-- ═══════════ HERO ═══════════ -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-lines"></div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-eyebrow">Foundry VTT Module</div>
+      <h1>Art<br><span>Presence</span></h1>
+      <div class="hero-version-line">v<em>2.3.1</em> &nbsp;·&nbsp; Foundry V13 &nbsp;·&nbsp; MIT</div>
+      <p class="hero-desc">
+        <strong>Арт как живое присутствие</strong>, а не просто картинка в окне. Заменяет стандартный ImagePopout на кинематографическую систему показа персонажей: позиционирование на экране, 15 настроений с визуальными эффектами, фоновая музыка, библиотека карточек и полный API для макросов.
+      </p>
+      <div class="tags">
+        <span class="tag tag-teal">v2.3.1</span>
+        <span class="tag tag-violet">Foundry V13</span>
+        <span class="tag tag-rose">15 настроений</span>
+        <span class="tag tag-amber">12 позиций</span>
+        <span class="tag tag-green">Мультиплеер</span>
+      </div>
+    </div>
+    <div class="hero-sidebar">
+      <div class="meta-row">
+        <div class="k">Версия</div>
+        <div class="v teal">2.3.1</div>
+      </div>
+      <div class="meta-row">
+        <div class="k">Foundry VTT</div>
+        <div class="v">V13 minimum</div>
+      </div>
+      <div class="meta-row">
+        <div class="k">Совместимость</div>
+        <div class="v teal">Verified V13</div>
+      </div>
+      <div class="meta-row">
+        <div class="k">Зависимости</div>
+        <div class="v" style="color: var(--green)">Нет</div>
+      </div>
+      <div class="meta-row">
+        <div class="k">Языки</div>
+        <div class="lang-row">
+          <span class="lang-pill">🇷🇺 RU</span>
+          <span class="lang-pill">🇬🇧 EN</span>
+        </div>
+      </div>
+      <div class="meta-row">
+        <div class="k">Лицензия</div>
+        <div class="v">MIT</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ OVERVIEW ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Зачем этот модуль</div>
+    <h2>От скучного показа к живой сцене</h2>
+    <p class="sec-intro">Стандартный ImagePopout в Foundry просто открывает картинку. Art Presence делает появление персонажа событием.</p>
+
+    <div class="two-col">
+      <div>
+        <p style="color:var(--text-dim); line-height:1.85; margin-bottom:16px; font-weight:300;">
+          Когда ГМ хочет показать злодея или важного NPC, он не просто кидает изображение — он <strong style="color:var(--text);">режиссирует сцену</strong>. Персонаж появляется из-за края экрана, из угла, нависает сверху или выглядывает снизу. Вместе с ним — виньетка, частицы, туман, мерцание, дождь, фоновый звук.
+        </p>
+        <p style="color:var(--text-dim); line-height:1.85; margin-bottom:16px; font-weight:300;">
+          Все карточки хранятся в <strong style="color:var(--text);">библиотеке</strong> с папками и поиском. Один клик — и персонаж уже на экране у всех игроков. Другой клик — исчезает.
+        </p>
+        <div class="callout">
+          «Показывать злодея через обычный показ — как объявлять о появлении дракона через текстовый чат.»
+        </div>
+      </div>
+      <div>
+        <p style="color:var(--text-dim); line-height:1.85; margin-bottom:16px; font-weight:300;">
+          Модуль написан с нуля под <strong style="color:var(--text);">ApplicationV2 / DialogV2</strong> (нативный Foundry V13 API), не использует сторонних зависимостей и работает через встроенные сокеты Foundry для синхронизации между всеми подключёнными клиентами.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FEATURES ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Возможности</div>
+    <h2>Всё, что нужно для кино за столом</h2>
+    <p class="sec-intro">Шесть систем, которые работают вместе.</p>
+
+    <div class="feat-grid">
+      <div class="feat">
+        <div class="feat-glyph">🎭</div>
+        <h3>Позиции на экране</h3>
+        <p>12 готовых позиций для любого нарратива — от торжественного центра до тревожного нависания сверху. Плюс полностью ручная позиция с drag-редактором.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-glyph">🌑</div>
+        <h3>Настроения и эффекты</h3>
+        <p>15 настроений с комбинациями виньетки, частиц, тумана, дождя, мерцания, тряски, пульса и анимированного тинта. От «Нейтрального» до «Безумия».</p>
+      </div>
+      <div class="feat">
+        <div class="feat-glyph">📚</div>
+        <h3>Библиотека карточек</h3>
+        <p>Сохраняйте персонажей в карточки с полным набором настроек. Организуйте по папкам, ищите по имени, показывайте одним кликом.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-glyph">✒</div>
+        <h3>Заголовки и шрифты</h3>
+        <p>Имя персонажа поверх арта. Семь позиций, 20+ шрифтов включая кириллические, настройка размера, цвета, обводки и тени.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-glyph">🔊</div>
+        <h3>Фоновая музыка</h3>
+        <p>К каждой карточке привязывается звуковой файл — тема персонажа играет в момент появления и плавно затухает при скрытии.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-glyph">🌐</div>
+        <h3>Синхронизация</h3>
+        <p>Всё происходит у всех одновременно через WebSockets. Настройка аудитории: все, только ГМ, или конкретный игрок по ID.</p>
+        <ul>
+          <li>Синхронизация через нативные сокеты Foundry</li>
+          <li>Нет внешних зависимостей</li>
+          <li>Игроки могут показывать арт персонажа</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ POSITIONS ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Позиционирование</div>
+    <h2>12 позиций + ручной редактор</h2>
+    <p class="sec-intro">Каждая позиция — это отдельный нарративный приём.</p>
+
+    <div class="pos-grid">
+      <div class="pos-screen">
+        <!-- Visual map of positions -->
+        <div class="pos-dot" style="left:12%;top:50%">
+          <div class="pos-dot-ring">◧</div>
+          <div class="pos-dot-name">left-lean</div>
+        </div>
+        <div class="pos-dot" style="left:88%;top:50%">
+          <div class="pos-dot-ring">◨</div>
+          <div class="pos-dot-name">right-lean</div>
+        </div>
+        <div class="pos-dot" style="left:50%;top:88%">
+          <div class="pos-dot-ring">⬆</div>
+          <div class="pos-dot-name">peek-bottom</div>
+        </div>
+        <div class="pos-dot" style="left:50%;top:14%">
+          <div class="pos-dot-ring">⬇</div>
+          <div class="pos-dot-name">loom-top</div>
+        </div>
+        <div class="pos-dot" style="left:50%;top:50%">
+          <div class="pos-dot-ring">◉</div>
+          <div class="pos-dot-name">center-stage</div>
+        </div>
+        <div class="pos-dot" style="left:14%;top:16%">
+          <div class="pos-dot-ring">↖</div>
+          <div class="pos-dot-name">corner-tl</div>
+        </div>
+        <div class="pos-dot" style="left:86%;top:16%">
+          <div class="pos-dot-ring">↗</div>
+          <div class="pos-dot-name">corner-tr</div>
+        </div>
+        <div class="pos-dot" style="left:14%;top:84%">
+          <div class="pos-dot-ring">↙</div>
+          <div class="pos-dot-name">corner-bl</div>
+        </div>
+        <div class="pos-dot" style="left:86%;top:84%">
+          <div class="pos-dot-ring">↘</div>
+          <div class="pos-dot-name">corner-br</div>
+        </div>
+        <div class="pos-dot" style="left:7%;top:50%">
+          <div class="pos-dot-ring" style="width:20px;height:20px;font-size:8px;">◁</div>
+          <div class="pos-dot-name">whisper-l</div>
+        </div>
+        <div class="pos-dot" style="left:93%;top:50%">
+          <div class="pos-dot-ring" style="width:20px;height:20px;font-size:8px;">▷</div>
+          <div class="pos-dot-name">whisper-r</div>
+        </div>
+        <div class="pos-dot" style="left:70%;top:60%">
+          <div class="pos-dot-ring" style="border-color:var(--violet);color:var(--violet);">⊕</div>
+          <div class="pos-dot-name" style="color:var(--violet-dim);">custom</div>
+        </div>
+      </div>
+
+      <div class="pos-list">
+        <div class="pos-item"><span class="pi-icon">◧</span><span class="pi-name">left-lean</span><span class="pi-hint">У левого края, слегка за рамкой</span></div>
+        <div class="pos-item"><span class="pi-icon">◨</span><span class="pi-name">right-lean</span><span class="pi-hint">У правого края, зеркально</span></div>
+        <div class="pos-item"><span class="pi-icon">⬆</span><span class="pi-name">peek-bottom</span><span class="pi-hint">Держится за нижнюю рамку экрана</span></div>
+        <div class="pos-item"><span class="pi-icon">⬇</span><span class="pi-name">loom-top</span><span class="pi-hint">Нависает сверху, создаёт давление</span></div>
+        <div class="pos-item"><span class="pi-icon">◉</span><span class="pi-name">center-stage</span><span class="pi-hint">Торжественный центральный показ</span></div>
+        <div class="pos-item"><span class="pi-icon">↖↗↙↘</span><span class="pi-name">peek-corner-*</span><span class="pi-hint">Выглядывает из любого из 4 углов</span></div>
+        <div class="pos-item"><span class="pi-icon">◁▷</span><span class="pi-name">whisper-left/right</span><span class="pi-hint">Маленький, у края — шёпот с обочины</span></div>
+        <div class="pos-item" style="border-color:rgba(155,109,255,0.3)"><span class="pi-icon" style="color:var(--violet)">⊕</span><span class="pi-name" style="color:var(--violet)">custom</span><span class="pi-hint">Drag + колесо мыши в живом редакторе</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ MOODS ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Настроения</div>
+    <h2>15 атмосферных состояний</h2>
+    <p class="sec-intro">Каждое настроение — это комбинация визуальных эффектов поверх арта. Применяются мгновенно, без перезагрузки.</p>
+
+    <div class="moods-grid">
+
+      <div class="mood-card">
+        <div class="mood-icon">○</div>
+        <div class="mood-name">Нейтральный</div>
+        <div class="mood-effects"><span class="eff eff-p">без эффектов</span></div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(155,109,255,0.2)">
+        <div class="mood-icon">◼</div>
+        <div class="mood-name">Мрачный</div>
+        <div class="mood-effects">
+          <span class="eff eff-v">виньетка</span>
+          <span class="eff eff-p">частицы</span>
+          <span class="eff eff-v">туман</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(255,179,71,0.2)">
+        <div class="mood-icon">◐</div>
+        <div class="mood-name">Тёплый</div>
+        <div class="mood-effects">
+          <span class="eff eff-f">виньетка</span>
+          <span class="eff eff-f">тинт</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(62,207,142,0.2)">
+        <div class="mood-icon">◕</div>
+        <div class="mood-name">Жуткий</div>
+        <div class="mood-effects">
+          <span class="eff eff-p">виньетка</span>
+          <span class="eff eff-p">частицы</span>
+          <span class="eff eff-f">мерцание</span>
+          <span class="eff eff-p">туман</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(255,220,80,0.25)">
+        <div class="mood-icon">◎</div>
+        <div class="mood-name">Божественный</div>
+        <div class="mood-effects">
+          <span class="eff eff-f">виньетка</span>
+          <span class="eff eff-f">частицы ✦</span>
+          <span class="eff eff-f">тинт</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(100,180,255,0.2)">
+        <div class="mood-icon">◈</div>
+        <div class="mood-name">Грозовой</div>
+        <div class="mood-effects">
+          <span class="eff eff-s">виньетка</span>
+          <span class="eff eff-s">дождь</span>
+          <span class="eff eff-f">мерцание</span>
+          <span class="eff eff-s">тинт</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(62,207,142,0.2)">
+        <div class="mood-icon">⌨</div>
+        <div class="mood-name">Матрица</div>
+        <div class="mood-effects">
+          <span class="eff eff-p">виньетка</span>
+          <span class="eff eff-p">матрица</span>
+          <span class="eff eff-p">тинт</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(255,95,138,0.2)">
+        <div class="mood-icon">♥</div>
+        <div class="mood-name">Влюблённость</div>
+        <div class="mood-effects">
+          <span class="eff eff-r">виньетка</span>
+          <span class="eff eff-r">частицы ♥</span>
+          <span class="eff eff-pl">пульс</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(255,60,60,0.2)">
+        <div class="mood-icon">☠</div>
+        <div class="mood-name">Ужас</div>
+        <div class="mood-effects">
+          <span class="eff eff-sh">виньетка</span>
+          <span class="eff eff-f">мерцание</span>
+          <span class="eff eff-sh">тряска</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(255,60,60,0.25)">
+        <div class="mood-icon">☢</div>
+        <div class="mood-name">Безумие</div>
+        <div class="mood-effects">
+          <span class="eff eff-r">виньетка</span>
+          <span class="eff eff-r">частицы</span>
+          <span class="eff eff-f">мерцание</span>
+          <span class="eff eff-pl">пульс</span>
+          <span class="eff eff-sh">тряска</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(200,20,20,0.25)">
+        <div class="mood-icon">✦</div>
+        <div class="mood-name">Кровавый</div>
+        <div class="mood-effects">
+          <span class="eff eff-sh">виньетка</span>
+          <span class="eff eff-sh">частицы</span>
+          <span class="eff eff-pl">пульс</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(180,160,255,0.2)">
+        <div class="mood-icon">☽</div>
+        <div class="mood-name">Сон</div>
+        <div class="mood-effects">
+          <span class="eff eff-ta">виньетка</span>
+          <span class="eff eff-ta">частицы</span>
+          <span class="eff eff-ta">туман</span>
+          <span class="eff eff-ta">анимтинт</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(255,120,20,0.2)">
+        <div class="mood-icon">🔥</div>
+        <div class="mood-name">Огненный</div>
+        <div class="mood-effects">
+          <span class="eff eff-f">виньетка</span>
+          <span class="eff eff-f">частицы</span>
+          <span class="eff eff-f">мерцание</span>
+          <span class="eff eff-pl">пульс</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(160,220,255,0.2)">
+        <div class="mood-icon">❄</div>
+        <div class="mood-name">Ледяной</div>
+        <div class="mood-effects">
+          <span class="eff eff-s">виньетка</span>
+          <span class="eff eff-s">частицы</span>
+          <span class="eff eff-sh">тряска</span>
+          <span class="eff eff-s">тинт</span>
+        </div>
+      </div>
+
+      <div class="mood-card" style="border-color:rgba(30,0,60,0.8);background:rgba(10,0,20,0.9)">
+        <div class="mood-icon">◉</div>
+        <div class="mood-name" style="color:#a060ff">Пустота</div>
+        <div class="mood-effects">
+          <span class="eff eff-v" style="background:rgba(0,0,0,0.4)">виньетка ×</span>
+          <span class="eff eff-f">мерцание</span>
+          <span class="eff eff-pl">пульс</span>
+          <span class="eff eff-sh">тряска</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:12px; font-family:'Overpass Mono',monospace; font-size:11px; color:var(--text-muted);">
+      <span><span class="eff eff-v">виньетка</span> — цветное затемнение по краям</span>
+      <span><span class="eff eff-p">частицы</span> — восходящие светящиеся точки</span>
+      <span><span class="eff eff-f">мерцание</span> — нестабильная яркость</span>
+      <span><span class="eff eff-s">дождь</span> — косые полосы дождя</span>
+      <span><span class="eff eff-sh">тряска</span> — дрожание изображения</span>
+      <span><span class="eff eff-pl">пульс</span> — медленное масштабирование</span>
+      <span><span class="eff eff-ta">анимтинт</span> — дышащий цветовой оверлей</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TITLES ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Заголовки</div>
+    <h2>Имя персонажа как часть сцены</h2>
+    <p class="sec-intro">7 позиций, 20+ шрифтов, полный контроль над стилем.</p>
+
+    <div class="two-col">
+      <div>
+        <p style="color:var(--text-dim); margin-bottom:20px; font-weight:300; line-height:1.8;">
+          К каждой карточке можно добавить имя — оно отображается поверх арта в выбранной позиции. Шрифт, размер, цвет, обводка, тень и даже точная позиция — всё настраивается через живой редактор.
+        </p>
+        <div class="setting-list">
+          <div class="setting-item">
+            <div class="si-bullet"></div>
+            <div>
+              <div class="si-name">Позиции заголовка</div>
+              <div class="si-desc">Снизу, сверху, слева, справа, внутри-сверху, внутри-снизу, по центру — плюс ручная позиция drag-редактором</div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="si-bullet"></div>
+            <div>
+              <div class="si-name">Шрифты (20+)</div>
+              <div class="si-desc">Классика, каллиграфия, машинка, пиксель, глитч, скриббл, кисть и другие — все с поддержкой кириллицы</div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="si-bullet"></div>
+            <div>
+              <div class="si-name">Цвет и обводка</div>
+              <div class="si-desc">Произвольный цвет текста, цвет и ширина обводки, текстовая тень</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="fonts-grid">
+          <div class="font-card"><div class="font-preview" style="font-family:'Georgia',serif">Мордан</div><div class="font-name">serif</div></div>
+          <div class="font-card"><div class="font-preview" style="font-family:'Courier New',monospace">Мордан</div><div class="font-name">typewriter</div></div>
+          <div class="font-card"><div class="font-preview" style="font-family:cursive">Мордан</div><div class="font-name">elegant</div></div>
+          <div class="font-card"><div class="font-preview" style="font-family:fantasy">Мордан</div><div class="font-name">rampant</div></div>
+          <div class="font-card"><div class="font-preview" style="font-size:16px;font-family:monospace;letter-spacing:-.05em">Мордан</div><div class="font-name">pixel</div></div>
+          <div class="font-card"><div class="font-preview" style="font-family:cursive;font-style:italic">Мордан</div><div class="font-name">brush</div></div>
+          <div class="font-card"><div class="font-preview" style="font-family:fantasy;filter:blur(0.5px)">Мордан</div><div class="font-name">glitch</div></div>
+          <div class="font-card"><div class="font-preview" style="font-family:fantasy">Мордан</div><div class="font-name">kablammo</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ AUDIENCE ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Аудитория</div>
+    <h2>Кому показывать присутствие</h2>
+    <p class="sec-intro">Каждая карточка имеет настройку аудитории — кто увидит появление персонажа.</p>
+
+    <table class="aud-table">
+      <thead>
+        <tr>
+          <th>Значение</th>
+          <th>Кто видит</th>
+          <th>Типичное применение</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>all</td>
+          <td style="color:var(--text-dim)">Все подключённые пользователи (ГМ + игроки)</td>
+          <td style="color:var(--text-dim)">Публичное появление персонажа, битва, объявление</td>
+        </tr>
+        <tr>
+          <td>gm</td>
+          <td style="color:var(--text-dim)">Только Мастер Игры</td>
+          <td style="color:var(--text-dim)">Личная заметка ГМа, скрытый NPC</td>
+        </tr>
+        <tr>
+          <td>&lt;userId&gt;</td>
+          <td style="color:var(--text-dim)">Конкретный игрок по ID пользователя</td>
+          <td style="color:var(--text-dim)">Личное видение, шёпот одному игроку, секретная встреча</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════ HOTKEYS & CONTROLS ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Управление</div>
+    <h2>Горячие клавиши и кнопки</h2>
+    <p class="sec-intro">Быстрый доступ к основным функциям без навигации по меню.</p>
+
+    <div class="hotkey-grid">
+      <div class="hk">
+        <div class="hk-key">
+          <span class="kbd">Ctrl</span><span style="color:var(--text-muted);font-size:12px;">+</span>
+          <span class="kbd">Shift</span><span style="color:var(--text-muted);font-size:12px;">+</span>
+          <span class="kbd">P</span>
+        </div>
+        <span class="hk-desc">Открыть библиотеку присутствий</span>
+      </div>
+      <div class="hk">
+        <div class="hk-key">
+          <span class="kbd">Ctrl</span><span style="color:var(--text-muted);font-size:12px;">+</span>
+          <span class="kbd">Shift</span><span style="color:var(--text-muted);font-size:12px;">+</span>
+          <span class="kbd">Esc</span>
+        </div>
+        <span class="hk-desc">Скрыть все активные присутствия</span>
+      </div>
+      <div class="hk">
+        <div class="hk-key">
+          <span class="kbd">🎭</span>
+        </div>
+        <span class="hk-desc">Кнопка в панели токенов — открыть библиотеку</span>
+      </div>
+      <div class="hk">
+        <div class="hk-key">
+          <span class="kbd">👁</span>
+        </div>
+        <span class="hk-desc">Кнопка в панели токенов — скрыть все</span>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;">
+      <h3 style="font-family:'Raleway',sans-serif; font-size:18px; font-weight:700; color:var(--text); margin-bottom:16px;">Чат-команды <span style="font-size:13px; color:var(--text-muted); font-weight:400;">(только ГМ)</span></h3>
+      <div class="code-block">
+        <div class="cb-header">💬 chat</div>
+        <pre><span class="cm"># Показать карточку по имени</span>
+<span class="cs">/presence show</span> <span class="cv">Мордан Тёмный</span>
+
+<span class="cm"># Скрыть все присутствия</span>
+<span class="cs">/presence hide</span> <span class="cv">all</span>
+
+<span class="cm"># Открыть библиотеку</span>
+<span class="cs">/presence library</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ API ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Макросы и API</div>
+    <h2>Полный JavaScript API</h2>
+    <p class="sec-intro">Автоматизируйте показ персонажей из макросов, триггеров и других модулей.</p>
+
+    <table class="api-table" style="margin-bottom:28px;">
+      <thead>
+        <tr>
+          <th>Метод</th>
+          <th>Описание</th>
+          <th>Примечание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="api-fn">game.artPresence.openLibrary()</span></td>
+          <td class="api-desc">Открыть окно библиотеки</td>
+          <td class="api-note">Только ГМ</td>
+        </tr>
+        <tr>
+          <td><span class="api-fn">game.artPresence.quickShow(path, opts)</span></td>
+          <td class="api-desc">Быстрый показ по пути к файлу с опциями позиции, настроения, звука и аудитории</td>
+          <td class="api-note">Только ГМ</td>
+        </tr>
+        <tr>
+          <td><span class="api-fn">game.artPresence.show(card)</span></td>
+          <td class="api-desc">Показать по объекту карточки из библиотеки</td>
+          <td class="api-note">Только ГМ</td>
+        </tr>
+        <tr>
+          <td><span class="api-fn">game.artPresence.hideAll()</span></td>
+          <td class="api-desc">Скрыть все активные присутствия у всех</td>
+          <td class="api-note">Только ГМ</td>
+        </tr>
+        <tr>
+          <td><span class="api-fn">game.artPresence.library.getAll()</span></td>
+          <td class="api-desc">Получить массив всех карточек библиотеки</td>
+          <td class="api-note">Чтение</td>
+        </tr>
+        <tr>
+          <td><span class="api-fn">game.artPresence.openPositionEditor(path)</span></td>
+          <td class="api-desc">Открыть редактор позиции, возвращает Promise с координатами</td>
+          <td class="api-note">Только ГМ</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="code-block">
+      <div class="cb-header">📄 macros.js — примеры</div>
+      <pre><span class="cm">// ── Два персонажа одновременно ──────────────────────────</span>
+<span class="ck">const</span> [ally, enemy] = [<span class="cv">"Эйлин"</span>, <span class="cv">"Мордан Тёмный"</span>]
+  .map(name => game.artPresence.library.getAll().find(c => c.name === name));
+
+<span class="ck">if</span> (ally)  game.artPresence.show({ ...ally,  position: <span class="cv">"left-lean"</span> });
+<span class="ck">if</span> (enemy) game.artPresence.show({ ...enemy, position: <span class="cv">"right-lean"</span> });
+
+<span class="cm">// ── Быстрый показ злодея ────────────────────────────────</span>
+game.artPresence.quickShow(<span class="cv">"worlds/campaign/boss.png"</span>, {
+  position: <span class="cv">"loom-top"</span>,
+  mood:     <span class="cv">"void"</span>,
+  title:    <span class="cv">"Архидемон"</span>,
+  sound:    <span class="cv">"music/boss-theme.ogg"</span>,
+  audience: <span class="cv">"all"</span>,
+});</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SETTINGS ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Настройки модуля</div>
+    <h2>Четыре глобальные настройки</h2>
+    <p class="sec-intro">Все настройки в меню «Настройки Foundry → Параметры модуля».</p>
+
+    <div class="setting-list">
+      <div class="setting-item">
+        <div class="si-bullet"></div>
+        <div>
+          <div class="si-name">Игроки могут показывать арты</div>
+          <div class="si-desc">При включении в листе персонажа появляется кнопка «Показать арт» — игрок может самостоятельно вывести арт своего персонажа на экраны остальных</div>
+        </div>
+      </div>
+      <div class="setting-item">
+        <div class="si-bullet"></div>
+        <div>
+          <div class="si-name">Добавить кнопку к стандартному ImagePopout (В разработке)</div>
+          <div class="si-desc">При открытии любого встроенного ImagePopout добавляет кнопку «Показать через Art Presence» — удобная интеграция без изменения привычного workflow</div>
+        </div>
+      </div>
+      <div class="setting-item">
+        <div class="si-bullet"></div>
+        <div>
+          <div class="si-name">Кнопки в панели сцены</div>
+          <div class="si-desc">Добавляет иконки «Библиотека» и «Скрыть все» в тулбар слоя токенов для быстрого доступа без горячих клавиш</div>
+        </div>
+      </div>
+      <div class="setting-item">
+        <div class="si-bullet"></div>
+        <div>
+          <div class="si-name">Громкость звука (0–1)</div>
+          <div class="si-desc">Регулировка громкости фоновых звуков, привязанных к карточкам. Независимо от основного звука Foundry</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ COMPAT ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-eye">Совместимость</div>
+    <h2>Требования и техническая база</h2>
+    <p class="sec-intro">Модуль не требует сторонних зависимостей и использует нативный API Foundry V13.</p>
+
+    <div class="compat-row">
+      <div class="compat-box">
+        <div class="cb-label">Foundry VTT</div>
+        <div class="cb-val">V13</div>
+        <div class="cb-sub">Minimum + Verified</div>
+        <div><span class="badge badge-ok">Verified</span></div>
+      </div>
+      <div class="compat-box">
+        <div class="cb-label">Игровые системы</div>
+        <div class="cb-val">Любые</div>
+        <div class="cb-sub">Системо-независим</div>
+        <div><span class="badge badge-teal">Universal</span></div>
+      </div>
+      <div class="compat-box">
+        <div class="cb-label">Зависимости</div>
+        <div class="cb-val">Нет</div>
+        <div class="cb-sub">Нативный API V13</div>
+        <div><span class="badge badge-ok">Standalone</span></div>
+      </div>
+      <div class="compat-box">
+        <div class="cb-label">API базис</div>
+        <div class="cb-val">AppV2</div>
+        <div class="cb-sub">ApplicationV2 + DialogV2</div>
+        <div><span class="badge badge-violet">Modern</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="ft-text">
+      <span>Art Presence</span> · v2.3.1 · MIT License<br>
+      Foundry VTT V13 · ApplicationV2 · No dependencies · EN / RU
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
